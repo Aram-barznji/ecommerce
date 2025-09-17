@@ -18,21 +18,28 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final _searchController = TextEditingController();
-  
+
   @override
   void initState() {
     super.initState();
+    // Do NOT use context here — move Bloc events to didChangeDependencies
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Safe to use context here — inherited widgets are ready
     context.read<ProductBloc>().add(ProductLoadRequested());
     context.read<CartBloc>().add(CartLoadRequested());
     context.read<FavoritesBloc>().add(FavoritesLoadRequested());
   }
-  
+
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
-  
+
   void _search(String query) {
     if (query.isEmpty) {
       context.read<ProductBloc>().add(ProductSearchCleared());
@@ -40,7 +47,7 @@ class _HomePageState extends State<HomePage> {
       context.read<ProductBloc>().add(ProductSearchRequested(query));
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
