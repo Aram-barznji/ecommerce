@@ -1,3 +1,5 @@
+// app_navigation.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/cart/cart_bloc.dart';
@@ -8,60 +10,69 @@ import '../pages/favorites_page.dart';
 import '../pages/profile_page.dart';
 
 class AppNavigation extends StatefulWidget {
+  // Accept a pageIndex to support deep linking or initial tab selection
+  final int initialIndex;
+
+  const AppNavigation({Key? key, this.initialIndex = 0}) : super(key: key);
+
   @override
   _AppNavigationState createState() => _AppNavigationState();
 }
 
 class _AppNavigationState extends State<AppNavigation> {
-  int _currentIndex = 0;
-  
+  late int _currentIndex;
+
   final List<Widget> _pages = [
     HomePage(),
     FavoritesPage(),
     CartPage(),
     ProfilePage(),
   ];
-  
-  void _onItemTapped(int index) {
-    if (index != _currentIndex) {
-      setState(() {
-        _currentIndex = index;
-      });
-      
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => _pages[index],
-          transitionDuration: Duration.zero,
-        ),
-      );
-    }
-  }
-  
+
   @override
   void initState() {
     super.initState();
-    _setCurrentIndex();
+    _currentIndex = widget.initialIndex; // Safe default
   }
-  
-  void _setCurrentIndex() {
-    final currentRoute = ModalRoute.of(context)?.settings.name;
-    final currentWidget = context.widget;
-    
-    if (currentWidget.runtimeType.toString().contains('HomePage') ||
-        currentRoute == '/home') {
-      _currentIndex = 0;
-    } else if (currentWidget.runtimeType.toString().contains('FavoritesPage') ||
-               currentRoute == '/favorites') {
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Only now is context ready for ModalRoute
+    _updateCurrentIndexFromRoute();
+  }
+
+  void _updateCurrentIndexFromRoute() {
+    final routeName = ModalRoute.of(context)?.settings.name;
+
+    if (routeName == '/favorites') {
       _currentIndex = 1;
-    } else if (currentWidget.runtimeType.toString().contains('CartPage') ||
-               currentRoute == '/cart') {
+    } else if (routeName == '/cart') {
       _currentIndex = 2;
-    } else if (currentWidget.runtimeType.toString().contains('ProfilePage') ||
-               currentRoute == '/profile') {
+    } else if (routeName == '/profile') {
       _currentIndex = 3;
+    } else {
+      // Default to home if no match
+      _currentIndex = 0;
     }
   }
-  
+
+  void _onItemTapped(int index) {
+    if (index == _currentIndex) return;
+
+    setState(() {
+      _currentIndex = index;
+    });
+
+    // Use pushReplacement to avoid building full page stack
+    Navigator.of(context).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => _pages[index],
+        transitionDuration: Duration.zero,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
@@ -88,7 +99,7 @@ class _AppNavigationState extends State<AppNavigation> {
               if (state is CartLoaded) {
                 itemCount = state.itemCount;
               }
-              
+
               return Stack(
                 children: [
                   const Icon(Icons.shopping_cart_outlined),
@@ -127,7 +138,7 @@ class _AppNavigationState extends State<AppNavigation> {
               if (state is CartLoaded) {
                 itemCount = state.itemCount;
               }
-              
+
               return Stack(
                 children: [
                   const Icon(Icons.shopping_cart),
