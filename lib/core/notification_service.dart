@@ -4,42 +4,44 @@ class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
-
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  
+  static NotificationService get instance => _instance;
+  
+  final FlutterLocalNotificationsPlugin _notificationsPlugin = 
       FlutterLocalNotificationsPlugin();
-
+  
   Future<void> init() async {
-    const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-
-    const InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
-
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosSettings = DarwinInitializationSettings();
+    
+    const settings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+    
+    await _notificationsPlugin.initialize(settings);
   }
-
+  
   Future<void> showNotification({
     required int id,
     required String title,
     required String body,
   }) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
-        AndroidNotificationDetails(
+    const androidDetails = AndroidNotificationDetails(
       'ecommerce_channel',
       'E-Commerce Notifications',
       channelDescription: 'Notifications for e-commerce app',
-      importance: Importance.max,
+      importance: Importance.high,
       priority: Priority.high,
     );
-
-    const NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
-
-    await flutterLocalNotificationsPlugin.show(
-      id,
-      title,
-      body,
-      platformChannelSpecifics,
+    
+    const iosDetails = DarwinNotificationDetails();
+    
+    const details = NotificationDetails(
+      android: androidDetails,
+      iOS: iosDetails,
     );
+    
+    await _notificationsPlugin.show(id, title, body, details);
   }
 }

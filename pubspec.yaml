@@ -19,7 +19,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.8.1
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.10.0"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -30,15 +31,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_bloc: ^8.1.1
-  equatable: ^2.0.3
-  sqflite: ^2.2.5+1
-  path_provider: ^2.0.14
+  flutter_bloc: ^8.1.3
+  equatable: ^2.0.5
+  shared_preferences: ^2.2.2
+  sqflite: ^2.3.0
   path: ^1.8.3
-  flutter_local_notifications: ^19.4.2
-  shared_preferences: ^2.1.2  # For favorites (simple local storage)
-  # For splash screen (already mentioned)
-  flutter_native_splash: ^2.2.11
+  flutter_local_notifications: ^16.3.2
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -62,7 +60,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
 
-  flutter_lints: ^2.0.0
+  flutter_lints: ^3.0.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -76,7 +74,7 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  # assets:
+  assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

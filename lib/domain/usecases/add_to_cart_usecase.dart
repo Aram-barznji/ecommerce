@@ -1,17 +1,12 @@
-import '../entities/cart_item.dart';
+import '../entities/product.dart';
+import '../repositories/product_repository.dart';
 
 class AddToCartUseCase {
-  List<CartItem> cart = [];
-
-  void call(int productId, String name, double price) {
-    final existingItem = cart.firstWhere(
-      (item) => item.productId == productId,
-      orElse: () => CartItem(productId: productId, name: name, price: price),
-    );
-    if (cart.contains(existingItem)) {
-      cart[cart.indexOf(existingItem)].quantity++;
-    } else {
-      cart.add(existingItem);
-    }
+  final ProductRepository repository;
+  
+  AddToCartUseCase(this.repository);
+  
+  Future<bool> call(Product product, int quantity) {
+    return repository.addToCart(product, quantity);
   }
 }

@@ -1,48 +1,38 @@
-import 'package:sqflite/sqflite.dart';
-import '../data_sources/local_db.dart';
+import '../../domain/repositories/auth_repository.dart';
+import '../data_sources/local_preferences.dart';
 import '../../core/constants.dart';
 
-abstract class AuthRepository {
-  Future<bool> login(String username, String password);
-  Future<bool> isLoggedIn();
-  Future<void> logout();
-}
-
-class AuthRepositoryImpl implements AuthRepository {
-  final LocalDB localDB;
-
-  AuthRepositoryImpl(this.localDB);
-
+class AuthRepositoryImpl extends AuthRepository {
+  final LocalPreferences _prefs = LocalPreferences.instance;
+  
   @override
-  Future<bool> login(String username, String password) async {
-    final db = await localDB.database;
-    final result = await db.query(
-      Constants.userTable,
-      where: 'username = ? AND password = ?',
-      whereArgs: [username, password],
-    );
-
-    if (result.isEmpty) {
-      // Insert user for one-time login (simulate registration)
-      await db.insert(Constants.userTable, {
-        'username': username,
-        'password': password,
-      });
+  Future<bool> login(String email, String password) async {
+    // Simulate API call
+    await Future.delayed(const Duration(seconds: 1));
+    
+    // Mock authentication logic
+    if (email.isNotEmpty && password.length >= 6) {
+      await _prefs.setBool(AppConstants.keyIsLoggedIn, true);
+      await _prefs.setString(AppConstants.keyUserName, email);
       return true;
     }
+    return false;
+  }
+  
+  @override
+  Future<bool> logout() async {
+    await _prefs.setBool(AppConstants.keyIsLoggedIn, false);
+    await _prefs.remove(AppConstants.keyUserName);
     return true;
   }
-
+  
   @override
   Future<bool> isLoggedIn() async {
-    final db = await localDB.database;
-    final result = await db.query(Constants.userTable);
-    return result.isNotEmpty;
+    return _prefs.getBool(AppConstants.keyIsLoggedIn) ?? false;
   }
-
+  
   @override
-  Future<void> logout() async {
-    final db = await localDB.database;
-    await db.delete(Constants.userTable);
+  Future<String?> getCurrentUser() async {
+    return _prefs.getString(AppConstants.keyUserName);
   }
 }

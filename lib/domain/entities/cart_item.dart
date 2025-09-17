@@ -1,15 +1,17 @@
-class CartItem {
-  final int productId;
-  final String name;
-  final double price;
-  int quantity;
+import 'package:equatable/equatable.dart';
+import 'product.dart';
 
-  CartItem({
-    required this.productId,
-    required this.name,
-    required this.price,
-    this.quantity = 1,
+class CartItem extends Equatable {
+  final Product product;
+  final int quantity;
+  
+  const CartItem({
+    required this.product,
+    required this.quantity,
   });
-
-  double get total => price * quantity;
+  
+  double get totalPrice => product.price * quantity;
+  
+  @override
+  List<Object?> get props => [product, quantity];
 }

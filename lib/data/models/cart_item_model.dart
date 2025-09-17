@@ -1,31 +1,30 @@
-class CartItemModel {
-  final int productId;
-  final String name;
-  final double price;
-  int quantity;
+import '../../domain/entities/cart_item.dart';
+import 'product_model.dart';
 
-  CartItemModel({
-    required this.productId,
-    required this.name,
-    required this.price,
-    this.quantity = 1,
+class CartItemModel extends CartItem {
+  const CartItemModel({
+    required super.product,
+    required super.quantity,
   });
-
-  Map<String, dynamic> toMap() {
+  
+  factory CartItemModel.fromJson(Map<String, dynamic> json) {
+    return CartItemModel(
+      product: ProductModel.fromJson(json['product'] as Map<String, dynamic>),
+      quantity: json['quantity'] as int,
+    );
+  }
+  
+  Map<String, dynamic> toJson() {
     return {
-      'productId': productId,
-      'name': name,
-      'price': price,
+      'product': (product as ProductModel).toJson(),
       'quantity': quantity,
     };
   }
-
-  factory CartItemModel.fromMap(Map<String, dynamic> map) {
+  
+  factory CartItemModel.fromEntity(CartItem cartItem) {
     return CartItemModel(
-      productId: map['productId'],
-      name: map['name'],
-      price: map['price'],
-      quantity: map['quantity'],
+      product: ProductModel.fromEntity(cartItem.product),
+      quantity: cartItem.quantity,
     );
   }
 }

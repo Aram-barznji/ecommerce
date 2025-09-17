@@ -1,28 +1,30 @@
-part of 'cart_bloc.dart';
+import 'package:equatable/equatable.dart';
+import '../../../domain/entities/product.dart';
 
 abstract class CartEvent extends Equatable {
+  const CartEvent();
+  
   @override
   List<Object?> get props => [];
 }
 
-class CartRequested extends CartEvent {}
+class CartLoadRequested extends CartEvent {}
 
-class CartAddRequested extends CartEvent {
-  final int productId;
-  final String name;
-  final double price;
-
-  CartAddRequested(this.productId, this.name, this.price);
-
+class CartItemAdded extends CartEvent {
+  final Product product;
+  final int quantity;
+  
+  const CartItemAdded(this.product, this.quantity);
+  
   @override
-  List<Object?> get props => [productId, name, price];
+  List<Object?> get props => [product, quantity];
 }
 
-class CartRemoveRequested extends CartEvent {
-  final int productId;
-
-  CartRemoveRequested(this.productId);
-
+class CartItemRemoved extends CartEvent {
+  final String productId;
+  
+  const CartItemRemoved(this.productId);
+  
   @override
   List<Object?> get props => [productId];
 }

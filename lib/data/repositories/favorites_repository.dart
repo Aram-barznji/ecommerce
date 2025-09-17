@@ -1,34 +1,57 @@
-import '../data_sources/local_preferences.dart';
+import '../../domain/repositories/favorites_repository.dart';
+import '../../domain/entities/favorites.dart';
+import '../../domain/entities/product.dart';
+import '../data_sources/local_db.dart';
 
-abstract class FavoritesRepository {
-  Future<List<int>> getFavorites();
-  Future<void> addFavorite(int productId);
-  Future<void> removeFavorite(int productId);
-}
-
-class FavoritesRepositoryImpl implements FavoritesRepository {
-  final LocalPreferences prefs;
-
-  FavoritesRepositoryImpl(this.prefs);
-
+class FavoritesRepositoryImpl extends FavoritesRepository {
+  final LocalDatabase _db = LocalDatabase.instance;
+  
   @override
-  Future<List<int>> getFavorites() async {
-    return prefs.getFavorites();
-  }
-
-  @override
-  Future<void> addFavorite(int productId) async {
-    final favorites = await getFavorites();
-    if (!favorites.contains(productId)) {
-      favorites.add(productId);
-      await prefs.setFavorites(favorites);
+  Future<bool> toggleFavorite(Product product) async {
+    final db = await _db.database;
+    
+    final existing = await db.query(
+      'favorites',
+      where: 'productId = ?',
+      whereArgs: [product.id],
+    );
+    
+    if (existing.isNotEmpty) {
+      // Remove from favorites
+      await db.delete(
+        'favorites',
+        where: 'productId = ?',
+        whereArgs: [product.id],
+      );
+      return false;
+    } else {
+      // Add to favorites
+      await db.insert('favorites', {
+        'productId': product.id,
+        'addedAt': DateTime.now().millisecondsSinceEpoch,
+      });
+      return true;
     }
   }
-
+  
   @override
-  Future<void> removeFavorite(int productId) async {
-    final favorites = await getFavorites();
-    favorites.remove(productId);
-    await prefs.setFavorites(favorites);
+  Future<Favorites> getFavorites() async {
+    final db = await _db.database;
+    final maps = await db.query('favorites');
+    
+    final productIds = maps.map((map) => map['productId'] as String).toList();
+    
+    return Favorites(favoriteProductIds: productIds);
+  }
+  
+  @override
+  Future<bool> isFavorite(String productId) async {
+    final db = await _db.database;
+    final result = await db.query(
+      'favorites',
+      where: 'productId = ?',
+      whereArgs: [productId],
+    );
+    return result.isNotEmpty;
   }
 }

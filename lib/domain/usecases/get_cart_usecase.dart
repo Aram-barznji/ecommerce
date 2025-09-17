@@ -1,9 +1,12 @@
 import '../entities/cart_item.dart';
+import '../repositories/product_repository.dart';
 
 class GetCartUseCase {
-  List<CartItem> cart = [];
-
-  Future<List<CartItem>> call() async {
-    return cart;
+  final ProductRepository repository;
+  
+  GetCartUseCase(this.repository);
+  
+  Future<List<CartItem>> call() {
+    return repository.getCartItems();
   }
 }

@@ -1,64 +1,56 @@
-import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
 import '../../core/constants.dart';
 
-class LocalDB {
-  static final LocalDB _instance = LocalDB._internal();
-  factory LocalDB() => _instance;
-  LocalDB._internal();
-
+class LocalDatabase {
+  static final LocalDatabase _instance = LocalDatabase._internal();
+  factory LocalDatabase() => _instance;
+  LocalDatabase._internal();
+  
+  static LocalDatabase get instance => _instance;
+  
   Database? _database;
-
+  
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDB();
     return _database!;
   }
-
+  
   Future<Database> _initDB() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, Constants.dbName);
-
+    final path = join(dbPath, AppConstants.dbName);
+    
     return await openDatabase(
       path,
-      version: Constants.dbVersion,
+      version: AppConstants.dbVersion,
       onCreate: _onCreate,
     );
   }
-
-  Future _onCreate(Database db, int version) async {
+  
+  Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE ${Constants.userTable}(
+      CREATE TABLE cart(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL,
-        password TEXT NOT NULL
+        productId TEXT NOT NULL,
+        productData TEXT NOT NULL,
+        quantity INTEGER NOT NULL
       )
     ''');
-
+    
     await db.execute('''
-      CREATE TABLE ${Constants.productTable}(
+      CREATE TABLE favorites(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        description TEXT,
-        price REAL NOT NULL
+        productId TEXT NOT NULL UNIQUE,
+        addedAt INTEGER NOT NULL
       )
     ''');
-
-    // Insert sample products
-    await db.insert(Constants.productTable, {
-      'name': 'Wireless Headphones',
-      'description': 'Noise-cancelling over-ear headphones',
-      'price': 99.99,
-    });
-    await db.insert(Constants.productTable, {
-      'name': 'Smartphone',
-      'description': 'Latest Android phone with high-res camera',
-      'price': 699.99,
-    });
-    await db.insert(Constants.productTable, {
-      'name': 'Laptop',
-      'description': 'Ultra-thin laptop for work and play',
-      'price': 1299.99,
-    });
+  }
+  
+  Future<void> close() async {
+    final db = _database;
+    if (db != null) {
+      await db.close();
+    }
   }
 }

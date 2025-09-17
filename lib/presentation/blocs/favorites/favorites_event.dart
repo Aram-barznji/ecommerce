@@ -1,18 +1,20 @@
-part of 'favorites_bloc.dart';
+import 'package:equatable/equatable.dart';
+import '../../../domain/entities/product.dart';
 
 abstract class FavoritesEvent extends Equatable {
+  const FavoritesEvent();
+  
   @override
   List<Object?> get props => [];
 }
 
-class FavoritesRequested extends FavoritesEvent {}
+class FavoritesLoadRequested extends FavoritesEvent {}
 
-class FavoritesToggleRequested extends FavoritesEvent {
-  final int productId;
-  final bool isFavorite;
-
-  FavoritesToggleRequested(this.productId, this.isFavorite);
-
+class FavoriteToggled extends FavoritesEvent {
+  final Product product;
+  
+  const FavoriteToggled(this.product);
+  
   @override
-  List<Object?> get props => [productId, isFavorite];
+  List<Object?> get props => [product];
 }

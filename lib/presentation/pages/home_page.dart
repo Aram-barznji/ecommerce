@@ -1,80 +1,106 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../core/utils.dart';
 import '../blocs/product/product_bloc.dart';
+import '../blocs/product/product_event.dart';
+import '../blocs/product/product_state.dart';
 import '../blocs/cart/cart_bloc.dart';
+import '../blocs/cart/cart_event.dart';
 import '../blocs/favorites/favorites_bloc.dart';
+import '../blocs/favorites/favorites_event.dart';
 import '../widgets/product_item.dart';
 import '../widgets/app_navigation.dart';
-import '../../core/notification_service.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class HomePage extends StatefulWidget {
+  @override
+  _HomePageState createState() => _HomePageState();
+}
 
+class _HomePageState extends State<HomePage> {
+  final _searchController = TextEditingController();
+  
+  @override
+  void initState() {
+    super.initState();
+    context.read<ProductBloc>().add(ProductLoadRequested());
+    context.read<CartBloc>().add(CartLoadRequested());
+    context.read<FavoritesBloc>().add(FavoritesLoadRequested());
+  }
+  
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+  
+  void _search(String query) {
+    if (query.isEmpty) {
+      context.read<ProductBloc>().add(ProductSearchCleared());
+    } else {
+      context.read<ProductBloc>().add(ProductSearchRequested(query));
+    }
+  }
+  
   @override
   Widget build(BuildContext context) {
-    final productBloc = context.read<ProductBloc>();
-    final cartBloc = context.read<CartBloc>();
-    final favoritesBloc = context.read<FavoritesBloc>();
-
-    final TextEditingController searchController = TextEditingController();
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('E-Commerce'),
+        title: const Text('Products'),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(50),
+          preferredSize: const Size.fromHeight(60),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.all(8.0),
             child: TextField(
-              controller: searchController,
-              decoration: const InputDecoration(
+              controller: _searchController,
+              decoration: InputDecoration(
                 hintText: 'Search products...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
               ),
-              onChanged: (query) {
-                productBloc.add(ProductSearchRequested(query));
-              },
+              onChanged: _search,
             ),
           ),
         ),
       ),
       body: BlocBuilder<ProductBloc, ProductState>(
         builder: (context, state) {
-          if (state is ProductLoadInProgress) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (state is ProductLoadSuccess) {
-            final products = state.products;
-            return ListView.builder(
+          if (state is ProductLoading) {
+            return AppUtils.buildLoadingWidget();
+          } else if (state is ProductLoaded || state is ProductSearchLoaded) {
+            final products = state is ProductLoaded 
+                ? state.products 
+                : (state as ProductSearchLoaded).products;
+            
+            if (products.isEmpty) {
+              return const Center(child: Text('No products found'));
+            }
+            
+            return GridView.builder(
+              padding: const EdgeInsets.all(16),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                childAspectRatio: 0.75,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+              ),
               itemCount: products.length,
-              itemBuilder: (context, index) {
-                final product = products[index];
-                return ProductItem(
-                  product: product,
-                  onAddToCart: () {
-                    cartBloc.add(CartAddRequested(
-                      product.id,
-                      product.name,
-                      product.price,
-                    ));
-                    NotificationService().showNotification(
-                      id: 2,
-                      title: 'Added to Cart',
-                      body: '${product.name} added to cart.',
-                    );
-                  },
-                  onToggleFavorite: () {
-                    favoritesBloc.add(FavoritesToggleRequested(product.id, true)); // Toggle logic
-                  },
-                );
-              },
+              itemBuilder: (context, index) => ProductItem(product: products[index]),
             );
-          } else {
-            return const Center(child: Text('Failed to load products'));
+          } else if (state is ProductError) {
+            return AppUtils.buildErrorWidget(
+              state.message,
+              () => context.read<ProductBloc>().add(ProductLoadRequested()),
+            );
           }
+          return const SizedBox.shrink();
         },
       ),
-      bottomNavigationBar: const AppNavigation(currentIndex: 0),
+      bottomNavigationBar: AppNavigation(),
     );
   }
 }
