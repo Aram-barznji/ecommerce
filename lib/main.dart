@@ -23,16 +23,18 @@ import 'presentation/pages/splash_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize services
   await LocalDatabase.instance.database;
   await LocalPreferences.instance.init();
   await NotificationService.instance.init();
-  
-  runApp(MyApp());
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
@@ -85,7 +87,7 @@ class MyApp extends StatelessWidget {
           ),
         ],
         child: MaterialApp(
-          title: 'E-Commerce App',
+          title: AppConstants.appName,
           theme: AppTheme.lightTheme,
           home: SplashPage(),
           debugShowCheckedModeBanner: false,
